@@ -8,17 +8,15 @@
 #include <assert.h>
 #include <map>
 #include <time.h>
-//#include "rapidjson/writer.h"
-//#include "rapidjson/stringbuffer.h"
 
 
 
 struct actor
 {
-    std::string name;
+    string name;
     int age;
-    std::string Born_At;
-    std::string Birthdate;
+    string Born_At;
+    string Birthdate;
 };
 
 using namespace std;
@@ -35,30 +33,30 @@ vector<actor> actors;
 IStream* stream;
 tm datetime;
 
-//std::map<std::string, std::string> mapForAttributeThatMatchesName(const rapidjson::Value& attributes, const std::string& findMemberName, const std::string& findMemberValue, const std::vector<std::string>& keysToRetrieve) {
-//
-//    std::map<std::string, std::string> result;
-//    for (rapidjson::Value::ConstValueIterator itr = attributes.Begin(); itr != attributes.End(); ++itr) {
-//
-//        const rapidjson::Value::ConstMemberIterator currentAttribute = itr->FindMember(findMemberName.c_str());
-//        if (currentAttribute != itr->MemberEnd() && currentAttribute->value.IsString()) {
-//
-//            if (currentAttribute->value == findMemberValue.c_str()) {
-//
-//                for (auto& keyToRetrieve : keysToRetrieve) {
-//
-//                    const rapidjson::Value::ConstMemberIterator currentAttributeToReturn = itr->FindMember(keyToRetrieve.c_str());
-//                    if (currentAttributeToReturn != itr->MemberEnd() && currentAttributeToReturn->value.IsString()) {
-//
-//                        result[keyToRetrieve] = currentAttributeToReturn->value.GetString();
-//                    }
-//                }
-//                return result;
-//            }
-//        }
-//    }
-//    return result;
-//}
+map<string, string> mapForAttributeThatMatchesName(const Value& attributes, const string& findMemberName, const string& findMemberValue, const vector<string>& keysToRetrieve) {
+
+    map<string, string> result;
+    for (Value::ConstValueIterator itr = attributes.Begin(); itr != attributes.End(); ++itr) {
+
+        const Value::ConstMemberIterator currentAttribute = itr->FindMember(findMemberName.c_str());
+        if (currentAttribute != itr->MemberEnd() && currentAttribute->value.IsString()) {
+
+            if (currentAttribute->value == findMemberValue.c_str()) {
+
+                for (auto& keyToRetrieve : keysToRetrieve) {
+
+                    const Value::ConstMemberIterator currentAttributeToReturn = itr->FindMember(keyToRetrieve.c_str());
+                    if (currentAttributeToReturn != itr->MemberEnd() && currentAttributeToReturn->value.IsString()) {
+
+                        result[keyToRetrieve] = currentAttributeToReturn->value.GetString();
+                    }
+                }
+                return result;
+            }
+        }
+    }
+    return result;
+}
 
 int main(int argc, TCHAR* argv[])
 {
@@ -96,11 +94,13 @@ int main(int argc, TCHAR* argv[])
         Document d;
         d.Parse(json.c_str());
 
+        assert(d["Actors"].IsArray());
+
         Value& a = d["Actors"];
-        assert(a.IsArray()); 
-        for (unsigned int i = 0; i < a.MemberCount(); i++)
-        {
-            //printf("Name: %s, Age: %i\r\n", a.GetArray()[i]["Name"], a.GetArray()[i]["Age"]);
+        map<string, string> mapForResult = mapForAttributeThatMatchesName(attributes, "name", "mass", keysToRetrieve);
+        for (auto& mapItem : mapForResult) {
+
+            cout << mapItem.first << ":" << mapItem.second << "\n";
         }
     }
     else
