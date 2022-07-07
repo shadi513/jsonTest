@@ -8,16 +8,17 @@
 #include <assert.h>
 #include <map>
 #include <time.h>
+#include "strptime.h"
 
 
 
 struct actor
 {
-    string name;
+    std::string name;
     int age;
-    string Born_At;
-    string Birthdate;
-};
+    std::string Born_At;
+    std::string Birthdate;
+}ac;
 
 using namespace std;
 using namespace rapidjson;
@@ -31,53 +32,20 @@ string json;
 wstring FN = L"test.json";
 vector<actor> actors;
 IStream* stream;
+unsigned long bytesRead;
 tm datetime;
 
-map<string, string> mapForAttributeThatMatchesName(const Value& attributes, const string& findMemberName, const string& findMemberValue, const vector<string>& keysToRetrieve) {
-
-    map<string, string> result;
-    for (Value::ConstValueIterator itr = attributes.Begin(); itr != attributes.End(); ++itr) {
-
-        const Value::ConstMemberIterator currentAttribute = itr->FindMember(findMemberName.c_str());
-        if (currentAttribute != itr->MemberEnd() && currentAttribute->value.IsString()) {
-
-            if (currentAttribute->value == findMemberValue.c_str()) {
-
-                for (auto& keyToRetrieve : keysToRetrieve) {
-
-                    const Value::ConstMemberIterator currentAttributeToReturn = itr->FindMember(keyToRetrieve.c_str());
-                    if (currentAttributeToReturn != itr->MemberEnd() && currentAttributeToReturn->value.IsString()) {
-
-                        result[keyToRetrieve] = currentAttributeToReturn->value.GetString();
-                    }
-                }
-                return result;
-            }
-        }
-    }
-    return result;
-}
+vector<actor> v;
 
 int main(int argc, TCHAR* argv[])
 {
-
-    datetime.tm_year = 2022;
-    datetime.tm_mon = 7;
-    datetime.tm_mday = 7;
-    datetime.tm_hour = 0;
-    datetime.tm_min = 0;
-    datetime.tm_sec = 0;
-
-
-
-    printf("Getting remote file %s.\r\n",URL.c_str());
+    printf("Retrieving JSON remote file from %s\r\n",URL.c_str());
     if (URLOpenBlockingStreamA(0, URL.c_str(), &stream, 0, 0) != 0)
     {
-        cout << "failed to get file";
+        cout << "failed to get file" << endl;
         return -1;
     }
-
-    unsigned long bytesRead;
+    
     hFile = CreateFile(FN.c_str(), GENERIC_ALL, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile != INVALID_HANDLE_VALUE)
     {
@@ -87,106 +55,45 @@ int main(int argc, TCHAR* argv[])
             if(!bytesRead) break;
             json.append(buff, bytesRead);
             bErrorFlag = WriteFile(hFile, buff, bytesRead, &dwBytesWritten, NULL);
-            wprintf(L"Wrote %d bytes to %s successfully.\r\n", dwBytesWritten, FN.c_str());
-        };
-        cout << json << endl;
+            if (bErrorFlag) wprintf(L"File %s saved successfully.\r\n", FN.c_str()); else printf("Error saving file\r\n");
+        }
 
+        //Print JSON string
+        //cout << json << endl;
+
+        //Analyze JSON string using tencent/rapidjson library
         Document d;
         d.Parse(json.c_str());
-
         assert(d["Actors"].IsArray());
-
         Value& a = d["Actors"];
-        map<string, string> mapForResult = mapForAttributeThatMatchesName(attributes, "name", "mass", keysToRetrieve);
-        for (auto& mapItem : mapForResult) {
+        for (auto& val : a.GetArray())
+        {
+            //fill actor object (ac) with the data from JSON file
+            ac.name = val["name"].GetString();
+            ac.age = val["age"].GetInt();
+            ac.Born_At = val["Born At"].GetString();
+            ac.Birthdate = val["Birthdate"].GetString();
 
-            cout << mapItem.first << ":" << mapItem.second << "\n";
+            //Put the data into vector container (v) with structure match the json format (ac)
+            v.push_back(ac);
+
+            //Analyze Date string to date and time parts
+            strptime(ac.Birthdate.c_str(), "%d/%m/%Y", &datetime);
+            //Hours and minutes and seconds are equals 0
+
+            //Print the name and the Age into console
+            cout << "Name: " << ac.name << " Age: " << (int)ac.age << endl;
         }
+
     }
     else
     {
-        printf("Cannot write file\r\n");
+        cout << "Cannot write file\r\n" << endl;
+        return -1;
     }
     stream->Release();
     CloseHandle(hFile);
-
-    
-
+    printf("Vector size: %i\r\n", v.size());
     printf("Done.\r\n");
     return 0;
 }
-
-//// ONLY FOR WINDOWS 
-//// NEEDS WINDOWS SET UP 
-//// COMPILE USING Visual Studio Express, 
-//// Visual C++ Express or any edition 
-//// any version 
-//#pragma comment(lib, "urlmon.lib")
-//
-//#include <urlmon.h>
-//#include <iostream>
-//
-//#define getURL URLOpenBlockingStreamA
-//
-//using namespace std;
-//
-//// c program to download a file from url 
-//int main()
-//{
-//
-//    // Windows IStream interface 
-//    IStream* stream;
-//
-//    const char* URL = "http://mqplanet.com/test.json";
-//
-//    // make a call to the URL 
-//    // a non-zero return means some error 
-//    if (getURL(0, URL, &stream, 0, 0))
-//    {
-//
-//        cout << "Error occured.";
-//
-//        cout << "Check internet";
-//
-//        cout << "Check URL. Is it correct?";
-//
-//        return -1;
-//
-//    }
-//
-//    // this char array will be cyclically 
-//    // filled with bytes from URL 
-//    char buff[1000];
-//
-//    // we shall keep appending the bytes 
-//    // to this string 
-//    string s;
-//
-//    unsigned long bytesRead;
-//
-//    while (true)
-//    {
-//
-//        // Reads a specified number of bytes 
-//        // from the stream object into char 
-//        // array and stores the actual 
-//        // bytes read to "bytesRead" 
-//        stream->Read(buff, 100, &bytesRead);
-//
-//        if (!bytesRead) break;
-//
-//        // append and collect to the string 
-//        s.append(buff, bytesRead);
-//
-//    };
-//
-//    // release the interface 
-//    // good programming practice 
-//    stream->Release();
-//
-//    // display 
-//    //cout << s << endl;
-//    printf("%s",&s);
-//    return 0;
-//
-//}
