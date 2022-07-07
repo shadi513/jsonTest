@@ -1,3 +1,10 @@
+/*
+* File: ConsoleApplication.cpp
+* Author: Shadi Abu Salem
+* Project: JSON in C++
+* Last Modified: 2022-07-07
+*/
+
 
 #pragma comment(lib, "urlmon.lib")
 #include <urlmon.h>
@@ -9,7 +16,6 @@
 #include <map>
 #include <time.h>
 #include "strptime.h"
-
 
 
 struct actor
